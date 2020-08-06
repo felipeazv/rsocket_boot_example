@@ -1,0 +1,157 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ include "rsocketbootclient.name" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    app: {{ include "rsocketbootclient.name" . }}
+    chart: {{ include "rsocketbootclient.chart" . }}
+    release: {{ include "rsocketboot" . }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.spec.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "rsocketbootclient.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "rsocketbootclient.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      imagePullSecrets:
+        - name: {{.Values.global.image.pullSecret}}
+      volumes:
+        - name: config-volume
+          configMap:
+            name: {{ include "rsocketbootclient.name" . }}-config
+        {{- if .Values.global.certificates.enabled }}
+        - name: ca
+          secret:
+            secretName: ca-cert
+        - name: cert
+          secret:
+            secretName: {{ include "rsocketboot" . }}-cert
+        - name: password
+          emptyDir: {}
+        - name: keystore
+          emptyDir: {}
+        {{- end }}
+      initContainers:
+        {{- if .Values.global.certificates.enabled }}
+        - name: import-cert
+          image: frapsoft/openssl
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - |
+              export RANDFILE=/tmp/.rnd
+
+              # Create keystore passwords
+              openssl rand -base64 32 > /etc/x509/password/keystore
+              openssl rand -base64 32 > /etc/x509/password/truststore
+
+              chown 1000 /etc/x509/password/*
+              chmod 0600 /etc/x509/password/*
+
+              # Create pkcs12 keystore
+              openssl pkcs12 -export -in /etc/x509/cert/tls.crt -inkey /etc/x509/cert/tls.key \
+                      -out /etc/x509/keystore/keystore.p12 -name server \
+                      -CAfile /etc/x509/ca/ca.crt -caname root \
+                      -password file:/etc/x509/password/keystore
+
+              # Convert P12 to PKCS8 for grpc ssl context configuration: private key
+              # export key to pem file
+              openssl pkcs12 -in /etc/x509/keystore/keystore.p12 \
+                      -out /etc/x509/keystore/keystore.pem \
+                      -nocerts -nodes \
+                      -password file:/etc/x509/password/keystore
+
+              # from pem to pkcs8
+              openssl pkcs8 -topk8 \
+              -in /etc/x509/keystore/keystore.pem \
+              -out /etc/x509/keystore/keystore.pkcs8 -nocrypt
+
+              # Convert to pem format
+              cat /etc/x509/cert/tls.crt > /etc/x509/keystore/truststore.pem
+              cat /etc/x509/ca/ca.crt >> /etc/x509/keystore/truststore.pem
+
+              chown 1000 /etc/x509/keystore/*
+              chmod 0600 /etc/x509/keystore/*
+
+          volumeMounts:
+            - name: password
+              mountPath: "/etc/x509/password"
+            - name: keystore
+              mountPath: "/etc/x509/keystore"
+            - name: cert
+              mountPath: "/etc/x509/cert"
+            - name: ca
+              mountPath: "/etc/x509/ca"
+        - name: import-cert-keytool
+          image: openjdk:11.0-jre-slim
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - |
+
+              # Copy cacerts
+              cp $JAVA_HOME/lib/security/cacerts /etc/x509/keystore/truststore.jks
+
+              # Change cacerts password
+              keytool -storepasswd -keystore /etc/x509/keystore/truststore.jks -storepass changeit -new $(cat /etc/x509/password/truststore)
+
+              # Add cluster CA
+              keytool -importcert -keystore /etc/x509/keystore/truststore.jks -storepass \
+                      $(cat /etc/x509/password/truststore) -file /etc/x509/ca/ca.crt \
+                      -noprompt -storetype JKS
+          volumeMounts:
+            - name: password
+              mountPath: "/etc/x509/password"
+            - name: keystore
+              mountPath: "/etc/x509/keystore"
+            - name: cert
+              mountPath: "/etc/x509/cert"
+            - name: ca
+              mountPath: "/etc/x509/ca"
+        {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: {{ .Values.global.image.repository }}{{ .Values.image.name }}:{{ .Values.global.image.tag }}
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: {{ .Values.global.config.profile }}
+          volumeMounts:
+            - name: config-volume
+              mountPath: /config/
+            {{- if .Values.global.certificates.enabled }}
+            - name: password
+              mountPath: "/etc/x509/password"
+            - name: keystore
+              mountPath: "/etc/x509/keystore"
+            - name: ca
+              mountPath: "/etc/x509/ca"
+              {{- end }}
+          ports:
+            - name: port
+              containerPort: {{ .Values.config.server.port }}
+              protocol: TCP
+
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+  {{- with .Values.nodeSelector }}
+      nodeSelector:
+      {{ toYaml . | indent 8 }}
+      {{- end }}
+        {{- with .Values.affinity }}
+          affinity:
+          {{ toYaml . | indent 8 }}
+          {{- end }}
+          {{- with .Values.tolerations }}
+          tolerations:
+  {{ toYaml . | indent 8 }}
+  {{- end }}

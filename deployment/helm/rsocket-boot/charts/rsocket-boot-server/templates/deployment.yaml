@@ -1,0 +1,65 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ include "rsocketbootserver.name" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    app: {{ include "rsocketbootserver.name" . }}
+    chart: {{ include "rsocketbootserver.chart" . }}
+    release: {{ include "rsocketboot" . }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.spec.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "rsocketbootserver.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "rsocketbootserver.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      imagePullSecrets:
+        - name: {{.Values.global.image.pullSecret}}
+      volumes:
+        - name: config-volume
+          configMap:
+            name: {{ include "rsocketbootserver.name" . }}-config
+        {{- if .Values.global.certificates.enabled }}
+        - name: cert
+          secret:
+            secretName: {{ include "rsocketboot" . }}-cert
+        {{- end }}
+      containers:
+      - name: {{ .Chart.Name }}
+        image: {{ .Values.global.image.repository }}{{ .Values.image.name }}:{{ .Values.global.image.tag }}
+        imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+        env:
+          - name: SPRING_PROFILES_ACTIVE
+            value: {{ .Values.global.config.profile }}
+        volumeMounts:
+        - name: config-volume
+          mountPath: /config/
+        {{- if .Values.global.certificates.enabled }}
+        - name: cert
+          mountPath: "/etc/x509/cert"
+          {{- end }}
+        ports:
+          - name: port
+            containerPort: {{ .Values.config.rsocket.server.port }}
+            protocol: TCP
+        resources:
+{{ toYaml .Values.resources | indent 12 }}
+  {{- with .Values.nodeSelector }}
+      nodeSelector:
+      {{ toYaml . | indent 8 }}
+      {{- end }}
+        {{- with .Values.affinity }}
+          affinity:
+          {{ toYaml . | indent 8 }}
+          {{- end }}
+          {{- with .Values.tolerations }}
+          tolerations:
+  {{ toYaml . | indent 8 }}
+  {{- end }}

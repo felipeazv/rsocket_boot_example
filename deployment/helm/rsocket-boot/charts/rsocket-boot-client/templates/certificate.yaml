@@ -1,0 +1,23 @@
+{{ if .Values.global.certificates.enabled }}
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: Certificate
+metadata:
+  name: {{ template "rsocketbootclient.name" . }}-cert
+  namespace: {{ .Release.Namespace | quote }}
+labels:
+  app: {{ template "rsocketbootclient.name" . }}
+  chart: {{ template "rsocketbootclient.chart" . }}
+  release: {{ include "rsocketboot" . }}
+  heritage: {{ .Release.Service }}
+spec:
+  secretName: {{ template "rsocketbootclient.name" . }}-cert
+  issuerRef:
+    name: ca
+    kind: ClusterIssuer
+  commonName: {{ template "rsocketbootclient.name" . }}
+  dnsNames:
+    - {{ template "rsocketbootclient.name" . }}
+    - {{ template "rsocketbootclient.name" . }}.{{ .Release.Namespace }}
+    - {{ template "rsocketbootclient.name" . }}.{{ .Release.Namespace }}.svc.cluster.local
+
+        {{- end }}

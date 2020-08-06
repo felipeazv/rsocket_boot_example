@@ -1,0 +1,11 @@
+spring:
+  profiles:
+    active: dev
+
+server:
+  port: 8443
+  ssl:
+    enabled: true
+    key-store: classpath:server.jks
+    key-store-password: secret
+    key-password: secret

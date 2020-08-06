@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "rsocketbootclient.name" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    app: {{ include "rsocketbootclient.name" . }}
+    chart: {{ include "rsocketbootclient.chart" . }}
+    release: {{ include "rsocketboot" . }}
+    heritage: {{ .Release.Service }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.config.server.port }}
+      targetPort: port
+      protocol: TCP
+      name: tcp
+  selector:
+    app: {{ include "rsocketbootclient.name" . }}
+    release: {{ .Release.Name }}

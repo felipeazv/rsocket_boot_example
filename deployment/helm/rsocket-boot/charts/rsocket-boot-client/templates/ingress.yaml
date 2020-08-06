@@ -1,0 +1,32 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ include "rsocketbootclient.name" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    app: {{ include "rsocketbootclient.name" . }}
+    chart: {{ include "rsocketbootclient.chart" . }}
+    release: {{ include "rsocketboot" . }}
+    heritage: {{ .Release.Service }}
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+spec:
+  {{- if .Values.ingress.tls }}
+  tls:
+    {{- range .Values.ingress.tls }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ . | quote }}
+      {{- end }}
+      secretName: {{ template "rsocketboot.name" . }}-cert
+  {{- end }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.host }}
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: {{ include "rsocketbootclient.name" . }}
+              servicePort: https

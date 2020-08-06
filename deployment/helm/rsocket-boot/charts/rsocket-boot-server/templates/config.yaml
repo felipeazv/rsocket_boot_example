@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "rsocketbootserver.name" . }}-config
+  namespace: {{ .Release.Namespace | quote }}
+data:
+  application-{{ .Values.global.config.profile }}.properties: |-
+    spring.profiles.active={{ .Values.global.config.profile }}
+    spring.rsocket.server.address={{ .Values.config.rsocket.server.address }}
+    spring.rsocket.server.port={{ .Values.config.rsocket.server.port }}
+    spring.rsocket.server.transport={{ .Values.config.rsocket.server.transport }}

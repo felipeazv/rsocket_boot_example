@@ -1,0 +1,28 @@
+# Visual Studio project files and folders
+**/packages/
+**/obj/
+**/bin/
+**/output/
+**/Generated/
+**/NUnitTestResultUploader.XSDModels/Data/
+**/.vs/
+*.lock.json
+*.nuget.targets
+*.user
+.nuget/
+*.nuget.props
+*.nuget.targets
+[Pp]ackages/
+# Intellij/Java project files and folders
+**/target/
+**/.idea/
+**/logs/
+*.iml
+*.plantuml
+*.lock
+*.tgz
+**/node_modules/
+**/package-lock.json
+**/results/
+# Pact Verification Reports
+**/pactverificationreports/

@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  # Backend
+  rsocket-boot-server:
+    build:
+      context: ./rsocket-boot-server
+      dockerfile: Dockerfile
+    ports:
+      - "8888:9999"
+      - "5006:5006"
+    environment:
+      - "JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5006"
+    hostname: rsocket-boot-server
+
+  rsocket-boot-client:
+    build:
+      context: ./rsocket-boot-client
+      dockerfile: Dockerfile
+    depends_on:
+      - rsocket-boot-server
+    ports:
+      - "7777:9999"
+      - "8443:8443"
+      - "5007:5007"
+    environment:
+      - "JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5007"
+    hostname: rsocket-boot-client

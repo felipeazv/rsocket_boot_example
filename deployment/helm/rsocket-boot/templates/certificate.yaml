@@ -1,0 +1,24 @@
+{{ if .Values.global.certificates.enabled }}
+apiVersion: cert-manager.io/v1alpha2
+kind: Issuer
+metadata:
+  name: {{ template "rsocketboot.name" . }}-selfsigned-cert
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: {{ template "rsocketboot.name" . }}-cert
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  commonName: {{ template "rsocketboot.name" . }}
+  secretName: {{ template "rsocketboot.name" . }}-cert
+  issuerRef:
+    name: {{ template "rsocketboot.name" . }}-selfsigned-cert
+  dnsNames:
+    - {{ template "rsocketbootserver.name" . }}
+    - {{ template "rsocketbootserver.name" . }}.{{ .Release.Namespace }}
+    - {{ template "rsocketbootserver.name" . }}.{{ .Release.Namespace }}.svc.cluster.local
+  {{- end }}

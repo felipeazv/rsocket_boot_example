@@ -1,0 +1,46 @@
+[[section-solution-strategy]]
+== Solution Strategy
+
+=== Technology Decisions
+
+.Technical Constraints
+[%header,cols="s,3"]
+|===
+| Technology
+| Descriptions
+
+| Java as language
+| This is used for the implementation of the overall solution.
+
+| JDK 11
+| https://www.oracle.com/technetwork/java/javase/downloads/jdk11-downloads-5066655.html[JDK 11^] is the latest LTS (Long-Term-Support) version of Java, which provides the latest features and enhancements.
+
+| Maven for project management
+| https://maven.apache.org/[Apache Maven^] is a software project management and comprehension tool. Based on the concept of a project object model (POM), Maven can manage a project's build, reporting and documentation from a central piece of information.
+
+| Spring Boot for straightforward development
+| http://spring.io/projects/spring-boot[Spring Boot^] makes it easy to create stand-alone, production-grade Spring based Applications that you can "just run".
+
+| RSocket
+| https://rsocket.io
+
+| Helm
+| https://docs.helm.sh/[The package manager for Kubernetes^]
+
+| Docker
+| https://docs.docker.com/[An open-source engine that automates application deployment^]
+|===
+
+=== Conventions
+
+.Conventions
+[%header,cols="s,3"]
+|===
+| Topic
+| Conventions
+| Java
+| https://www.jetbrains.com/help/idea/code-style-java.html[Intellij Java code style^]
+
+|===
+
+include::uml_design/rsocket_client_server_interaction.adoc[]

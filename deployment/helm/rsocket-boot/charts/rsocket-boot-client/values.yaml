@@ -1,0 +1,44 @@
+
+image:
+  name: rsocket-boot-client
+
+service:
+  type: LoadBalancer
+
+ingress:
+  host: localhost
+  tls: []
+
+config:
+  rsocket:
+    client:
+      address:
+      port:
+  server:
+    port: 8443
+    ssl:
+      enabled: true
+      keystoretype: PKCS12
+      truststoretype: JKS
+      keystore: /etc/x509/keystore/keystore.p12
+      truststore: file:/etc/x509/keystore/truststore.jks
+
+spec:
+  replicaCount: 1
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 1024Mi
+  requests:
+    cpu: 300m
+    memory: 512Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+nameOverride: ""
+fullnameOverride: ""

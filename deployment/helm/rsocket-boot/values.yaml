@@ -1,0 +1,23 @@
+global:
+  java:
+    version: openjdk:11.0-jre-slim
+  image:
+    tag:
+    repository:
+    pullSecret:
+    pullPolicy: Always
+  config:
+    profile:
+  certificates:
+    enabled: true
+  containers:
+    livenessProbe:
+      initialDelaySeconds: 120
+    readinessProbe:
+      initialDelaySeconds: 120
+  service:
+    type: ClusterIP
+    port: 443
+
+nameOverride: "rsocket-boot"
+fullnameOverride: "rsocket-boot"

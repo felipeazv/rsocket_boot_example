@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "rsocketbootclient.name" . }}-config
+  namespace: {{ .Release.Namespace | quote }}
+data:
+  application-{{ .Values.global.config.profile }}.properties: |-
+    spring.profiles.active={{ .Values.global.config.profile }}
+    rsocket.client.address={{ .Values.config.rsocket.client.address }}
+    rsocket.client.port={{ .Values.config.rsocket.client.port }}
+    {{- if .Values.global.certificates.enabled }}
+    server.port={{ .Values.config.server.port }}
+    server.ssl.enabled={{ .Values.config.server.ssl.enabled }}
+    server.ssl.key-store-type={{ .Values.config.server.ssl.keystoretype}}
+    server.ssl.trust-store-type={{ .Values.config.server.ssl.truststoretype }}
+    server.ssl.trust-store={{ .Values.config.server.ssl.truststore }}
+    server.ssl.key-store={{ .Values.config.server.ssl.keystore }}
+    server.ssl.key-store-password: secret
+    server.ssl.key-password: secret
+    {{- end }}

@@ -1,0 +1,6 @@
+spring:
+  rsocket:
+    server:
+      address: rsocket-boot-server
+      port: 9999
+      transport: tcp

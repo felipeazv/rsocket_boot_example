@@ -1,0 +1,29 @@
+image:
+  name: rsocket-boot-server
+
+config:
+  rsocket:
+    server:
+      address:
+      port:
+      transport:
+
+spec:
+  replicaCount: 1
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 1024Mi
+  requests:
+    cpu: 300m
+    memory: 512Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+nameOverride: ""
+fullnameOverride: ""

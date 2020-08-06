@@ -1,0 +1,21 @@
+Design: RSocket client/server interaction
+
+[plantuml,alt="RSocket client/server interaction"]
+----
+@startuml
+
+participant "AppDataReceiver" as BPP
+participant "RSocket-Comm" as RSC
+participant "AppDataProvider" as APP
+
+BPP -> RSC: request-as-json
+RSC -> RSC: converted-to-byte-request (java-to-byte conversion)
+RSC -> APP: request-as-bytes
+APP -> APP: converted-to-object-request (byte-to-java conversion)
+APP -> APP: Processed Request
+APP -> APP: converted-to-byte-response (java-to-byte conversion)
+APP -> RSC: response-as-bytes
+RSC -> RSC: converted-to-byte-request (byte-to-json conversion)
+RSC -> BPP: response-as-json
+@enduml
+----

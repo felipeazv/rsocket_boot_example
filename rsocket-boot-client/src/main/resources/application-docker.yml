@@ -1,0 +1,4 @@
+rsocket:
+  client:
+    port: 9999
+    address: rsocket-boot-server
